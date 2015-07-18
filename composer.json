@@ -16,7 +16,8 @@
         "php": ">=5.5.0"
     },
     "require-dev": {
-        "satooshi/php-coveralls": "dev-master"
+        "satooshi/php-coveralls": "dev-master",
+        "phpunit/phpunit": "~4.0"
     },
     "support": {
         "source": "https://github.com/blar/dba/",
