@@ -18,12 +18,12 @@ class DbaIterator implements Iterator {
     /**
      * @var Dba
      */
-    protected $dba;
+    private $dba;
 
     /**
      * @var string
      */
-    protected $key;
+    private $key;
 
     /**
      * @param Dba $dba
