@@ -1,7 +1,6 @@
-[![Build Status](https://travis-ci.org/blar/dba.png?branch=master)](https://travis-ci.org/blar/dba)
-[![Coverage Status](https://coveralls.io/repos/blar/dba/badge.png?branch=master)](https://coveralls.io/r/blar/dba?branch=master)
+[![Build Status](https://travis-ci.org/blar/dba.svg?branch=master)](https://travis-ci.org/blar/dba)
+[![Coverage Status](https://coveralls.io/repos/blar/dba/badge.svg?branch=master&service=github)](https://coveralls.io/github/blar/dba?branch=master)
 [![Dependency Status](https://gemnasium.com/blar/dba.svg)](https://gemnasium.com/blar/dba)
-[![Dependencies Status](https://depending.in/blar/dba.png)](http://depending.in/blar/dba)
 
 # DBA
 
