@@ -4,17 +4,42 @@
 
 # DBA
 
-http://php.net/dba
+Eine objektoriertierte Schnittstelle für die [DBA-Funktionen von PHP](http://php.net/dba).
 
 ## Verwendung
 
-* https://httpd.apache.org/docs/2.2/mod/mod_authn_dbm.html
+Der Apache-Webserver kann die Benutzerinformationen für die [Authentifizierung aus einer DBM-Datei](https://httpd.apache.org/docs/2.2/mod/mod_authn_dbm.html) laden.
 
 ## Beispiele
 
 Auf viele Methoden kann auch über die Array-Syntax zugegriffen werden.
 
+### Verfügbare Treiber
+
+Die verfügbaren Treiber (die im Parameter **driverName** angegeben werden) können über die statische Methode **Dba::getDrivers()** abgefragt werden. Eine typische Ausgabe kann wie folgt aussehen:
+
+    array(5) {
+       [0]=>
+       string(3) "cdb"
+       [1]=>
+       string(8) "cdb_make"
+       [2]=>
+       string(7) "inifile"
+       [3]=>
+       string(8) "flatfile"
+       [4]=>
+       string(4) "qdbm"
+    }
+
+Welche Datenbanktreiber unterstützt werden, hängt vom jeweiligen System und den Einstellungen ab mit denen PHP kompiliert wurde. Falls eine neue Datenbankdatei angelegt werden soll, kann für die Entscheidung welcher Treiber verwendet werden soll, der [Benchmarkvergleich von Tokyo Tyrant](http://tokyocabinet.sourceforge.net/benchmark.pdf) hilfreich sein.
+
 ### Datenbank erstellen
+
+#### INI-Datei
+
+    $dba = new Dba('test.ini', Dba::MODE_READ | Dba::MODE_WRITE | Dba::MODE_CREATE, array(
+        'driverName' => 'inifile'
+    ));
 
 #### GNU Database Manager (GDBM)
 
