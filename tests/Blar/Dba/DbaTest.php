@@ -32,6 +32,7 @@ class DbaTest extends TestCase {
     }
 
     public function createTestDatabase() {
+        var_dump(Dba::getDrivers());
         if(Dba::hasDriver('qdbm')) {
             return new Dba(
                 tempnam(sys_get_temp_dir(), 'temp_test_dba'), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, array(
