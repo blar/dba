@@ -11,20 +11,6 @@ use Trowable;
 
 class DbaTest extends TestCase {
 
-    public function createTestDatabase() {
-        if(Dba::hasDriver('qdbm')) {
-            return new Dba(tempnam(sys_get_temp_dir(), 'temp_test_dba'), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, [
-                'driverName' => 'qdbm'
-            ]);
-        }
-        if(Dba::hasDriver('gdbm')) {
-            return new Dba(tempnam(sys_get_temp_dir(), 'temp_test_dba'), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, [
-                'driverName' => 'gdbm'
-            ]);
-        }
-        $this->markTestSkipped('Driver GDBM or GDBM is not supported on this system');
-    }
-
     public function testInsertAndReplaceAndRemove() {
         $dba = $this->createTestDatabase();
 
@@ -36,17 +22,47 @@ class DbaTest extends TestCase {
         # $dba->insert('bar', 69);
         $dba->replace('foobar', 42);
 
-        $this->assertEquals([
-            'bar' => 42,
-            'foobar' => 42
-        ], iterator_to_array($dba));
+        $this->assertEquals(
+            [
+                'bar' => 42,
+                'foobar' => 42
+            ],
+            iterator_to_array($dba)
+        );
+    }
+
+    public function createTestDatabase() {
+        if(Dba::hasDriver('qdbm')) {
+            return new Dba(
+                tempnam(sys_get_temp_dir(), 'temp_test_dba'), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, array(
+                    'driverName' => 'qdbm'
+                )
+            );
+        }
+        if(Dba::hasDriver('gdbm')) {
+            return new Dba(
+                tempnam(sys_get_temp_dir(), 'temp_test_dba'), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, array(
+                    'driverName' => 'gdbm'
+                )
+            );
+        }
+        if(Dba::hasDriver('inifile')) {
+            return new Dba(
+                tempnam(sys_get_temp_dir(), 'temp_test_dba'), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, array(
+                    'driverName' => 'gdbm'
+                )
+            );
+        }
+        $this->markTestSkipped('Driver GDBM, GDBM, Inifile is not supported on this system');
     }
 
     public function testWithNamespace() {
         $fileName = tempnam(sys_get_temp_dir(), 'temp_test_dba');
-        $dba = new Dba($fileName, Dba::MODE_CREATE | Dba::MODE_TRUNCATE, [
-            'driverName' => 'inifile'
-        ]);
+        $dba = new Dba(
+            $fileName, Dba::MODE_CREATE | Dba::MODE_TRUNCATE, array(
+                'driverName' => 'inifile'
+            )
+        );
         $dba->setNamespace('foo');
         $dba->insert('a', 23);
         $dba->insert('b', 42);
@@ -87,49 +103,45 @@ class DbaTest extends TestCase {
         $this->assertTrue(isset($dba['foo']));
         $this->assertFalse(isset($dba['foobar']));
 
-        $this->assertEquals([
-            'foo' => 23,
-            'bar' => 42
-        ], iterator_to_array($dba));
-    }
-
-    public function testIterator() {
-        $dba = $this->createTestDatabase();
-
-        $dba->insert('foo', 23);
-        $dba->insert('bar', 42);
-        $dba->insert('foobar', 1337);
-
-        $this->assertEquals([
-            'foo' => 23,
-            'bar' => 42,
-            'foobar' => 1337
-        ], iterator_to_array($dba));
+        $this->assertEquals(
+            array(
+                'foo' => 23,
+                'bar' => 42
+            ),
+            iterator_to_array($dba)
+        );
     }
 
     public function testCreateAndReadConstantDatabase() {
         $fileName = tempnam(sys_get_temp_dir(), 'temp_test_cdb');
 
-        $dba = new Dba($fileName, Dba::MODE_CREATE | Dba::MODE_TRUNCATE, [
-            'driverName' => 'cdb_make'
-        ]);
+        $dba = new Dba(
+            $fileName, Dba::MODE_CREATE | Dba::MODE_TRUNCATE, array(
+                'driverName' => 'cdb_make'
+            )
+        );
 
         $dba->insert('foo', 23);
         $dba->insert('bar', 42);
         $dba->insert('foobar', 1337);
 
-        $this->assertEquals([], iterator_to_array($dba));
+        $this->assertEquals(array(), iterator_to_array($dba));
         unset($dba);
 
-        $dba = new Dba($fileName, Dba::MODE_READ, [
-            'driverName' => 'cdb'
-        ]);
+        $dba = new Dba(
+            $fileName, Dba::MODE_READ, array(
+                'driverName' => 'cdb'
+            )
+        );
 
-        $this->assertEquals([
-            'foo' => 23,
-            'bar' => 42,
-            'foobar' => 1337
-        ], iterator_to_array($dba));
+        $this->assertEquals(
+            [
+                'foo' => 23,
+                'bar' => 42,
+                'foobar' => 1337
+            ],
+            iterator_to_array($dba)
+        );
     }
 
     /**
@@ -139,9 +151,11 @@ class DbaTest extends TestCase {
         $this->markTestSkipped();
         $fileName = tempnam(sys_get_temp_dir(), 'temp_test_cdb');
 
-        $dba = new Dba($fileName, Dba::MODE_WRITE, [
-            'driverName' => 'cdb'
-        ]);
+        $dba = new Dba(
+            $fileName, Dba::MODE_WRITE, array(
+                'driverName' => 'cdb'
+            )
+        );
 
         $dba->insert('foo', 23);
         $dba->insert('bar', 42);

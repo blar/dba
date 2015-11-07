@@ -253,7 +253,7 @@ class Dba implements IteratorAggregate, ArrayAccess {
     public function fetch($key, $skip = 0) {
         $key = $this->addNamespaceToKey($key);
         $value = dba_fetch($key, $skip, $this->getHandle());
-        if($value === false) {
+        if($value === FALSE) {
             return NULL;
         }
         return $value;
