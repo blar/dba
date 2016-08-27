@@ -165,10 +165,10 @@ class Dba implements IteratorAggregate, ArrayAccess {
             $options['persistent'] = FALSE;
         }
         if($options['persistent']) {
-            $handle = dba_popen($fileName, self::getMode($mode), $options['driverName']);
+            $handle = @dba_popen($fileName, self::getMode($mode), $options['driverName']);
         }
         else {
-            $handle = dba_open($fileName, self::getMode($mode), $options['driverName']);
+            $handle = @dba_open($fileName, self::getMode($mode), $options['driverName']);
         }
         if(!$handle) {
             $message = sprintf('Cannot open Database "%s" with mode "%s"', $fileName, self::getMode($mode));
