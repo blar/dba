@@ -35,17 +35,15 @@ class DbaIterator implements Iterator {
     /**
      * @return Dba
      */
-    public function getDba() {
+    public function getDba(): Dba {
         return $this->dba;
     }
 
     /**
      * @param Dba $dba
-     * @return $this
      */
     public function setDba(Dba $dba) {
         $this->dba = $dba;
-        return $this;
     }
 
     /**
@@ -58,14 +56,14 @@ class DbaIterator implements Iterator {
     /**
      * @return string
      */
-    public function current() {
-        return $this->getDba()->fetch($this->key());
+    public function current(): string {
+        return $this->getDba()->getValue($this->key());
     }
 
     /**
      * @return string
      */
-    public function key() {
+    public function key(): string {
         return $this->key;
     }
 
@@ -80,7 +78,7 @@ class DbaIterator implements Iterator {
     /**
      * @return bool
      */
-    public function valid() {
+    public function valid(): bool {
         return $this->key !== false;
     }
 

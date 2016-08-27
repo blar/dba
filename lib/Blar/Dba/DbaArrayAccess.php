@@ -13,34 +13,34 @@ namespace Blar\Dba;
 trait DbaArrayAccess {
 
     /**
-     * @param mixed $offset
-     * @return mixed
+     * @param string $offset
+     * @return bool
      */
     public function offsetExists($offset) {
         return $this->exists($offset);
     }
 
     /**
-     * @param mixed $offset
-     * @return mixed
+     * @param string $offset
+     * @return string
      */
     public function offsetGet($offset) {
-        return $this->fetch($offset);
+        return $this->getValue($offset);
     }
 
     /**
-     * @param mixed $offset
-     * @param mixed $value
+     * @param string $offset
+     * @param string $value
      */
     public function offsetSet($offset, $value) {
-        $this->replace($offset, $value);
+        $this->setValue($offset, $value);
     }
 
     /**
-     * @param mixed $offset
+     * @param string $offset
      */
     public function offsetUnset($offset) {
-        $this->remove($offset);
+        $this->removeValues($offset);
     }
 
 }

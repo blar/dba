@@ -2,7 +2,7 @@
     "name": "blar/dba",
     "description": "DBA for PHP",
     "type": "library",
-    "keywords": ["php", "database"],
+    "keywords": ["php", "database", "cdb", "ini", "qdbm"],
     "homepage": "https://github.com/blar/dba/",
     "license": "LGPL-3.0+",
     "authors": [
@@ -11,13 +11,12 @@
             "email": "gmblar+github@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
     "require": {
-        "php": ">=5.4.0"
+        "php": "^7.0"
     },
     "require-dev": {
-        "blar/php-coveralls": "dev-master",
-        "phpunit/phpunit": "~4.0"
+        "satooshi/php-coveralls": "^1.0",
+        "phpunit/phpunit": "^5.0"
     },
     "support": {
         "source": "https://github.com/blar/dba/",

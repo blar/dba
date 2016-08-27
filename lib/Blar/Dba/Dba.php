@@ -20,13 +20,20 @@ class Dba implements IteratorAggregate, ArrayAccess {
 
     use DbaArrayAccess;
 
+    /**
+     * Open database with read access.
+     */
     const MODE_READ = 1;
 
+    /**
+     * Open database with write (and read) access.
+     */
     const MODE_WRITE = 2;
 
+    /**
+     * Create database with read and write access.
+     */
     const MODE_CREATE = 4;
-
-    const MODE_TRUNCATE = 8;
 
     const MODE_LOCK_DATABASE = 16;
 
@@ -34,12 +41,20 @@ class Dba implements IteratorAggregate, ArrayAccess {
 
     const MODE_LOCK_IGNORE = 64;
 
+    /**
+     * Test database (dont wait for the lock).
+     */
     const MODE_TEST = 128;
+
+    /**
+     * Truncate an existing database with read and write access.
+     */
+    const MODE_TRUNCATE = 8;
 
     /**
      * @var resource
      */
-    protected $handle;
+    private $handle;
 
     /**
      * @var string
@@ -47,48 +62,39 @@ class Dba implements IteratorAggregate, ArrayAccess {
     private $namespace;
 
     /**
-     * @param string $fileName
-     * @param int $mode
-     * @param array $options
-     */
-    public function __construct($fileName, $mode = self::MODE_READ, $options = []) {
-        $this->open($fileName, $mode, $options);
-    }
-
-    /**
-     * @param string $fileName
-     * @param int $mode
-     * @param array $options
+     * @param string $driverName
      *
-     * @throws RuntimeException
+     * @return bool
      */
-    public function open($fileName, $mode, $options = []) {
-        if(!array_key_exists('persistent', $options)) {
-            $options['persistent'] = FALSE;
-        }
-        if($options['persistent']) {
-            $handle = dba_popen($fileName, $this->getMode($mode), $options['driverName']);
-        }
-        else {
-            $handle = dba_open($fileName, $this->getMode($mode), $options['driverName']);
-        }
-        if(!$handle) {
-            $message = sprintf('Cannot open Database "%s" with mode "%s"', $fileName, $this->getMode($mode));
-            throw new RuntimeException($message);
-        }
-        $this->setHandle($handle);
-        return $this;
+    public static function hasDriver(string $driverName): bool {
+        return in_array($driverName, self::getDrivers());
     }
 
     /**
+     * @return array
+     */
+    public static function getDrivers(): array {
+        return dba_handlers();
+    }
+
+    /**
+     * @return array
+     */
+    public static function getOpenFiles(): array {
+        return dba_list();
+    }
+
+    /**
+     * Convert the constants to a string.
+     *
      * @param int $mode
      *
      * @return string
      */
-    public function getMode($mode) {
+    public static function getMode(int $mode): string {
         $result = '';
-        $result .= $this->getFileMode($mode);
-        $result .= $this->getLockMode($mode);
+        $result .= self::getFileMode($mode);
+        $result .= self::getLockMode($mode);
         if($mode & self::MODE_TEST) {
             $result .= 't';
         }
@@ -100,7 +106,7 @@ class Dba implements IteratorAggregate, ArrayAccess {
      *
      * @return string
      */
-    public function getFileMode($mode) {
+    public static function getFileMode(int $mode): string {
         if($mode & self::MODE_TRUNCATE) {
             return 'n';
         }
@@ -113,6 +119,8 @@ class Dba implements IteratorAggregate, ArrayAccess {
         if($mode & self::MODE_READ) {
             return 'r';
         }
+        $message = sprintf('Invalid mode "%s"', $mode);
+        throw new RuntimeException($message);
     }
 
     /**
@@ -120,7 +128,7 @@ class Dba implements IteratorAggregate, ArrayAccess {
      *
      * @return string
      */
-    public function getLockMode($mode) {
+    public static function getLockMode(int $mode): string {
         $result = '';
         if($mode & self::MODE_LOCK_DATABASE) {
             $result .= 'd';
@@ -135,26 +143,38 @@ class Dba implements IteratorAggregate, ArrayAccess {
     }
 
     /**
-     * @param string $driverName
+     * @param string $fileName Filename to the database file.
+     * @param int $mode Constants Dba::MODE_*
+     * @param array $options
+     */
+    public function __construct(string $fileName, int $mode = self::MODE_READ, array $options = []) {
+        $this->open($fileName, $mode, $options);
+    }
+
+    /**
+     * Open the database.
      *
-     * @return bool
+     * @param string $fileName Filename to the database file.
+     * @param int $mode Constants Dba::MODE_*
+     * @param array $options
+     *
+     * @throws RuntimeException
      */
-    public static function hasDriver($driverName) {
-        return in_array($driverName, self::getDrivers());
-    }
-
-    /**
-     * @return array
-     */
-    public static function getDrivers() {
-        return dba_handlers();
-    }
-
-    /**
-     * @return array
-     */
-    public static function getOpenFiles() {
-        return dba_list();
+    public function open(string $fileName, int $mode, array $options = []) {
+        if(!array_key_exists('persistent', $options)) {
+            $options['persistent'] = FALSE;
+        }
+        if($options['persistent']) {
+            $handle = dba_popen($fileName, self::getMode($mode), $options['driverName']);
+        }
+        else {
+            $handle = dba_open($fileName, self::getMode($mode), $options['driverName']);
+        }
+        if(!$handle) {
+            $message = sprintf('Cannot open Database "%s" with mode "%s"', $fileName, self::getMode($mode));
+            throw new RuntimeException($message);
+        }
+        $this->setHandle($handle);
     }
 
     public function __destruct() {
@@ -170,76 +190,73 @@ class Dba implements IteratorAggregate, ArrayAccess {
 
     /**
      * @param resource $handle
-     *
-     * @return $this
      */
     public function setHandle($handle) {
+        if(!is_resource($handle)) {
+            throw new RuntimeException('Argument is not a resource');
+        }
         $this->handle = $handle;
-        return $this;
     }
 
     /**
+     * Add a value.
+     * If the database supports multiple values for the same key
+     *
      * @param string $key
      * @param string $value
-     *
-     * @return $this
      */
-    public function insert($key, $value) {
+    public function addValue(string $key, string $value) {
         $key = $this->addNamespaceToKey($key);
         $result = dba_insert($key, $value, $this->getHandle());
         if(!$result) {
             throw new RuntimeException('Insert failed');
         }
-        return $this;
-    }
-
-    /**
-     * @param string $key
-     *
-     * @return string
-     */
-    private function addNamespaceToKey($key) {
-        $namespace = $this->getNamespace();
-        if($namespace) {
-            $key = [$namespace, $key];
-        }
-        return $key;
     }
 
     /**
      * @return string
      */
-    public function getNamespace() {
+    public function getNamespace(): string {
         return $this->namespace;
     }
 
     /**
      * @param string $namespace
      */
-    public function setNamespace($namespace) {
+    public function setNamespace(string $namespace) {
         $this->namespace = $namespace;
     }
 
     /**
-     * @param string $key
+     * Is a namespace is set?
      *
-     * @return $this
+     * @return bool
      */
-    public function remove($key) {
+    public function hasNamespace(): bool {
+        return !empty($this->namespace);
+    }
+
+    /**
+     * Remove values from the database.
+     *
+     * @param string $key
+     */
+    public function removeValues(string $key) {
         $key = $this->addNamespaceToKey($key);
         $result = dba_delete($key, $this->getHandle());
         if(!$result) {
             throw new RuntimeException('Remove failed');
         }
-        return $this;
     }
 
     /**
+     * Exists a key in the database?
+     *
      * @param string $key
      *
      * @return bool
      */
-    public function exists($key) {
+    public function exists(string $key): bool {
         $key = $this->addNamespaceToKey($key);
         return dba_exists($key, $this->getHandle());
     }
@@ -250,7 +267,7 @@ class Dba implements IteratorAggregate, ArrayAccess {
      *
      * @return string
      */
-    public function fetch($key, $skip = 0) {
+    public function getValue(string $key, int $skip = 0) {
         $key = $this->addNamespaceToKey($key);
         $value = dba_fetch($key, $skip, $this->getHandle());
         if($value === FALSE) {
@@ -260,47 +277,90 @@ class Dba implements IteratorAggregate, ArrayAccess {
     }
 
     /**
-     * @param string $key
-     * @param string $value
+     * Get multiple values if the database supports it.
      *
-     * @return $this
+     * @param string $key
+     *
+     * @return array
      */
-    public function replace($key, $value) {
-        $key = $this->addNamespaceToKey($key);
-        $result = dba_replace($key, $value, $this->getHandle());
-        if(!$result) {
-            throw new RuntimeException('Replace failed');
+    public function getValues(string $key): array {
+        $result = [];
+        for($i = 0; ; $i++) {
+            $value = $this->getValue($key, $i);
+            if(is_null($value)) {
+                break;
+            }
+            $result[] = $value;
         }
-        return $this;
+        return $result;
     }
 
     /**
-     * @return $this
+     * Set value.
+     *
+     * @param string $key
+     * @param string $value
+     */
+    public function setValue(string $key, string $value) {
+        $key = $this->addNamespaceToKey($key);
+        $result = dba_replace($key, $value, $this->getHandle());
+        if(!$result) {
+            throw new RuntimeException('setValue failed');
+        }
+    }
+
+    /**
+     * Set multiple values with the same key.
+     *
+     * @param string $key
+     * @param array $values Array of string values.
+     */
+    public function setValues(string $key, array $values) {
+        if($this->exists($key)) {
+            $this->removeValues($key);
+        }
+        foreach($values as $value) {
+            $this->addValue($key, $value);
+        }
+    }
+
+    /**
+     * Sync changes to filesystem.
      */
     public function sync() {
         $result = dba_sync($this->getHandle());
         if(!$result) {
             throw new RuntimeException('Sync failed');
         }
-        return $this;
     }
 
     /**
-     * @return $this
+     * Optimize database
      */
     public function optimize() {
         $result = dba_optimize($this->getHandle());
         if(!$result) {
             throw new RuntimeException('Optimize failed');
         }
-        return $this;
     }
 
     /**
      * @return DbaIterator
      */
-    public function getIterator() {
+    public function getIterator(): DbaIterator {
         return new DbaIterator($this);
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return string
+     */
+    protected function addNamespaceToKey(string $key) {
+        if($this->hasNamespace()) {
+            $key = [$this->getNamespace(), $key];
+        }
+        return $key;
     }
 
 }

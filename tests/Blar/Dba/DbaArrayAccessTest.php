@@ -8,6 +8,11 @@ namespace Blar\Dba;
 
 use PHPUnit_Framework_TestCase as TestCase;
 
+/**
+ * Class DbaArrayAccessTest
+ *
+ * @package Blar\Dba
+ */
 class DbaArrayAccessTest extends TestCase {
 
     public function testSetAndGet() {
@@ -22,26 +27,25 @@ class DbaArrayAccessTest extends TestCase {
     }
 
     public function createTestDatabase() {
-        var_dump(Dba::getDrivers());
         if(Dba::hasDriver('qdbm')) {
             return new Dba(
-                tempnam(sys_get_temp_dir(), 'temp_test_dba'), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, array(
+                $this->getTempFileName(), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, [
                     'driverName' => 'qdbm'
-                )
+                ]
             );
         }
         if(Dba::hasDriver('gdbm')) {
             return new Dba(
-                tempnam(sys_get_temp_dir(), 'temp_test_dba'), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, array(
+                $this->getTempFileName(), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, [
                     'driverName' => 'gdbm'
-                )
+                ]
             );
         }
         if(Dba::hasDriver('inifile')) {
             return new Dba(
-                tempnam(sys_get_temp_dir(), 'temp_test_dba'), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, array(
+                $this->getTempFileName(), Dba::MODE_CREATE | Dba::MODE_TRUNCATE, [
                     'driverName' => 'inifile'
-                )
+                ]
             );
         }
         $this->markTestSkipped('Driver GDBM, GDBM, Inifile is not supported on this system');
@@ -67,6 +71,10 @@ class DbaArrayAccessTest extends TestCase {
         $this->assertTrue(isset($dba['foo']));
         $this->assertFalse(isset($dba['bar']));
         $this->assertFalse(isset($dba['foobar']));
+    }
+
+    protected function getTempFileName(): string {
+        return tempnam(sys_get_temp_dir(), 'temp_test_dba');
     }
 
 }
