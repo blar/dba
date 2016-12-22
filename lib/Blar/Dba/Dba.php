@@ -59,7 +59,7 @@ class Dba implements IteratorAggregate, ArrayAccess {
     /**
      * @var string
      */
-    private $namespace;
+    private $namespace = '';
 
     /**
      * @param string $driverName
