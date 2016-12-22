@@ -148,6 +148,9 @@ class Dba implements IteratorAggregate, ArrayAccess {
      * @param array $options
      */
     public function __construct(string $fileName, int $mode = self::MODE_READ, array $options = []) {
+        if(!extension_loaded('dba')) {
+            throw new RuntimeException('Extension "dba" is not loaded');
+        }
         $this->open($fileName, $mode, $options);
     }
 
